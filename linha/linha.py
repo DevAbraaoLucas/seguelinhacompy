@@ -21,23 +21,20 @@ while force_sensor.pressed() != True: # espera eu apertar o sensor de força pra
 walking_speed = 0
 white_before_green = True
 obstacle = 0
-left_ref = left_sensor.reflection()
-right_ref = right_sensor.reflection()
-left_white = left_sensor.color() == Color.WHITE
-right_white = right_sensor.color() == Color.WHITE
-left_green = left_sensor.color() == Color.GREEN
-right_green = right_sensor.color() == Color.GREEN
 
-lista_sensores = [
-    left_ref,
-    right_ref,
-    left_white,
-    right_white,
-    left_green,
-    right_green,
-]
+
+def lista_sensores(): # função pra abreviar os diversos usos dos sensores
+    global left_ref, right_ref, left_white, right_white, left_green, right_green
+    left_ref = left_sensor.reflection()
+    right_ref = right_sensor.reflection()
+    left_white = left_sensor.color() == Color.WHITE
+    right_white = right_sensor.color() == Color.WHITE
+    left_green = left_sensor.color() == Color.GREEN
+    right_green = right_sensor.color() == Color.GREEN
 
 def line_bw(): # função para seguir preto e branco
+    lista_sensores()
+    
     if hub.imu.rotation(Axis.Y) > 8:  
         walking_speed = 20 # descida da rampa
     elif hub.imu.rotation(Axis.Y) < -8: 
@@ -88,14 +85,26 @@ def line_bw(): # função para seguir preto e branco
         right_motor.dc(25)
 
 def green(): # função para fazer a verificação do verde e os três possíveis casos de verde
+    lista_sensores()
+    
     left_motor.dc(-55)
     right_motor.run_angle(-55, 108)
-    if left_white and right_white:
+    if left_white and right_white: # checa se tem linha antes do verde
         left_motor.dc(55)
         right_motor.run_angle(55, 144)
+        
         if left_green and right_white:
             left_motor.dc(55)
             right_motor.run_angle(55, 288)
+            
+        elif left_white and right_green:
+            left_motor.dc(55)
+            right_motor.run_angle(55, 288)
+
+        elif left_green and right_green:
+            left_motor.dc(55)
+            right_motor.run_angle(55, 288)
+    
     else:
         left_motor.dc(55)
         right_motor.run_angle(55, 504)
@@ -104,7 +113,6 @@ while True: # loop principal
     if force_sensor.pressed() == True: # se eu apertar o sensor de força, não faz nada
         wait(1)
     else:
-        lista_sensores
         line_bw()
         if left_green == True:
             left_motor.dc(55)
