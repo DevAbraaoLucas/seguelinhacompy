@@ -1,0 +1,1 @@
+eu tenho dois códigos separados de linha e de resgate pq eu uso dois hubs de Lego Spike Prime, ou seja, um hub executa a programação de linha e o outro hub executa a programação para fazer resgate
