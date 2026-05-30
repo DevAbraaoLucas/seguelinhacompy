@@ -1,0 +1,21 @@
+from pybricks.hubs import PrimeHub
+from pybricks.pupdevices import Motor, ColorSensor, UltrasonicSensor, ForceSensor
+from pybricks.parameters import Button, Color, Direction, Port, Side, Stop
+from pybricks.robotics import DriveBase
+from pybricks.tools import wait, StopWatch
+hub = PrimeHub()
+
+motor_esquerdo = Motor(Port.A)
+motor_direito = Motor(Port.B)
+sensor_esquerdo = ColorSensor(Port.C)
+sensor_direito = ColorSensor(Port.D)
+
+def segue_preto(Kp, vel_base):
+    erro = sensor_esquerdo.reflection() - sensor_direito.reflection()
+    ajuste = Kp * erro
+
+    motor_esquerdo.run(vel_base + ajuste)
+    motor_direito.run(vel_base - ajuste)
+
+while True:
+    segue_preto(1, 550)
