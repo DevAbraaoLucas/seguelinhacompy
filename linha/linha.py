@@ -11,7 +11,6 @@ right_motor = Motor(Port.B, positive_direction=Direction.CLOCKWISE)
 left_sensor = ColorSensor(Port.C)
 right_sensor = ColorSensor(Port.D)
 ultrassonic_sensor = UltrasonicSensor(Port.E)
-force_sensor = ForceSensor(Port.F)
 hub = PrimeHub()
 
 # definindo variáveis
