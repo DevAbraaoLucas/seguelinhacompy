@@ -12,13 +12,13 @@ drive = DriveBase(left_motor, right_motor, 31, 126)
 left_sensor = ColorSensor(Port.C)
 right_sensor = ColorSensor(Port.D)
 ultrassonic_sensor = UltrasonicSensor(Port.E)
-hub = PrimeHub()
+hub = PrimeHub(top_side = Axis.Z, front_side = Axis.Y, broadcast_channel = 49, observe_channels = [94])
 
-hub.display.off()
+hub.light.off()
+hub.display.off() # desligando as luzes do hub pra economizar bateria
 
 def line_follower(Kp, base_speed): # função para seguir preto e branco
     if left_sensor.reflection() < 20 and right_sensor.reflection() > 40: # mtpreto branco
-        if right_sensor.reflection() < 20:
             drive.drive(370, 0)
             wait(300)
             while right_sensor.reflection() > 25: # gira até o sensor direito ver preto
@@ -31,8 +31,7 @@ def line_follower(Kp, base_speed): # função para seguir preto e branco
             right_motor.dc(-80)
             wait(100)
 
-    if left_sensor.reflection() > 40 and right_sensor.reflection() < 20: # branco mtpreto
-        if right_sensor.reflection() < 20:
+    elif left_sensor.reflection() > 40 and right_sensor.reflection() < 20: # branco mtpreto
             drive.drive(370, 0)
             wait(300)
             while left_sensor.reflection() > 25: # gira até o sensor esquerdo ver preto
@@ -67,7 +66,7 @@ def green(): # função para fazer a verificação do verde e os três possívei
         
         if left_sensor.color() == Color.GREEN and right_sensor.color() == Color.WHITE: # verde branco
             drive.drive(400, 0)
-            wait(444)
+            wait(350)
             left_motor.dc(-100)
             right_motor.dc(100)
             wait(500)
@@ -83,7 +82,7 @@ def green(): # função para fazer a verificação do verde e os três possívei
             
         elif left_sensor.color() == Color.WHITE and right_sensor.color() == Color.GREEN: # branco verde
             drive.drive(400, 0)
-            wait(444)
+            wait(350)
             left_motor.dc(100)
             right_motor.dc(-100)
             wait(500)
@@ -99,7 +98,7 @@ def green(): # função para fazer a verificação do verde e os três possívei
 
         elif left_sensor.color() == Color.GREEN and right_sensor.color() == Color.GREEN: # verde verde
             drive.drive(400, 0)
-            wait(500)
+            wait(400)
             left_motor.dc(100)
             right_motor.dc(-100)
             wait(1515)
@@ -125,52 +124,58 @@ def obstacle(side):
         if side == 1: # desvia pra esquerda
             left_motor.dc(-100)
             right_motor.dc(-100)
-            wait(180)
+            wait(111)
             left_motor.dc(-100)
             right_motor.dc(100)
-            wait(500)
+            wait(555)
+            left_motor.brake()
+            right_motor.brake()
+            wait(67)
             while True:
-                drive.drive(100, 44)
+                drive.drive(100, 50)
                 if right_sensor.reflection() < 25:
                     break
-            drive.drive(777, 0)
+            drive.drive(700, 0)
             wait(400)
             while True:
                 left_motor.dc(-100)
-                right_motor.dc(100)
+                right_motor.dc(80)
                 if right_sensor.reflection() < 25:
                     break
             left_motor.dc(70)
             right_motor.dc(-70)
-            wait(150)
+            wait(222)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(400)
+            wait(300)
             
         elif side == 2: # desvia pra direita
             left_motor.dc(-100)
             right_motor.dc(-100)
-            wait(180)
+            wait(111)
             left_motor.dc(100)
             right_motor.dc(-100)
-            wait(500)
+            wait(555)
+            left_motor.brake()
+            right_motor.brake()
+            wait(67)
             while True:
-                drive.drive(100, -44)
-                if right_sensor.reflection() < 25:
+                drive.drive(100, -50)
+                if left_sensor.reflection() < 25:
                     break
-            drive.drive(777, 0)
+            drive.drive(700, 0)
             wait(400)
             while True:
-                left_motor.dc(100)
+                left_motor.dc(80)
                 right_motor.dc(-100)
-                if right_sensor.reflection() < 25:
+                if left_sensor.reflection() < 25:
                     break
             left_motor.dc(-70)
             right_motor.dc(70)
-            wait(150)
+            wait(222)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(400)
+            wait(300)
 
 def red_line():
     if left_sensor.color() == Color.RED or right_sensor.color() == Color.RED:
@@ -181,7 +186,7 @@ while True: # loop principal
 #if hub.imu.rotation(Axis.X) < -15 or hub.imu.rotation(Axis.X) > 15:
 #    line_follower(2, 50)
 #else:
-    line_follower(2, 80)
+    line_follower(2, 75)
     
     if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
         left_motor.dc(50)
@@ -190,6 +195,6 @@ while True: # loop principal
         if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
             green()
 
-    obstacle(1)
+    obstacle(2)
 
     red_line()
