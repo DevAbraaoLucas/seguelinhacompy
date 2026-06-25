@@ -18,7 +18,7 @@ hub.light.off()
 hub.display.off() # desligando as luzes do hub pra economizar bateria
 
 def line_follower(Kp, base_speed): # função para seguir preto e branco
-    if left_sensor.reflection() < 20 and right_sensor.reflection() > 40: # mtpreto branco
+    if left_sensor.reflection() < 14 and right_sensor.reflection() > 40: # mtpreto branco
             drive.drive(370, 0)
             wait(300)
             while right_sensor.reflection() > 25: # gira até o sensor direito ver preto
@@ -31,7 +31,7 @@ def line_follower(Kp, base_speed): # função para seguir preto e branco
             right_motor.dc(-80)
             wait(100)
 
-    elif left_sensor.reflection() > 40 and right_sensor.reflection() < 20: # branco mtpreto
+    elif left_sensor.reflection() > 40 and right_sensor.reflection() < 14: # branco mtpreto
             drive.drive(370, 0)
             wait(300)
             while left_sensor.reflection() > 25: # gira até o sensor esquerdo ver preto
@@ -118,8 +118,6 @@ def green(): # função para fazer a verificação do verde e os três possívei
         wait(250)
 
 def obstacle(side):
-    hub.imu.reset_heading(0)
-
     if ultrassonic_sensor.distance() < 44:
         if side == 1: # desvia pra esquerda
             left_motor.dc(-100)
@@ -132,7 +130,7 @@ def obstacle(side):
             right_motor.brake()
             wait(67)
             while True:
-                drive.drive(100, 50)
+                drive.drive(100, 48)
                 if right_sensor.reflection() < 25:
                     break
             drive.drive(700, 0)
@@ -147,7 +145,7 @@ def obstacle(side):
             wait(222)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(300)
+            wait(200)
             
         elif side == 2: # desvia pra direita
             left_motor.dc(-100)
@@ -175,7 +173,7 @@ def obstacle(side):
             wait(222)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(300)
+            wait(200)
 
 def red_line():
     if left_sensor.color() == Color.RED or right_sensor.color() == Color.RED:
@@ -183,10 +181,10 @@ def red_line():
         wait(99999)
 
 while True: # loop principal
-#if hub.imu.rotation(Axis.X) < -15 or hub.imu.rotation(Axis.X) > 15:
-#    line_follower(2, 50)
-#else:
-    line_follower(2, 75)
+    if hub.imu.tilt()[0] < -15 or hub.imu.tilt()[0] > 15:
+        line_follower(1.5, 60)
+    else:
+        line_follower(3, 80)
     
     if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
         left_motor.dc(50)
@@ -195,6 +193,6 @@ while True: # loop principal
         if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
             green()
 
-    obstacle(2)
+    obstacle(1)
 
     red_line()
