@@ -17,7 +17,9 @@ hub = PrimeHub(top_side = Axis.Z, front_side = Axis.Y, broadcast_channel = 49, o
 hub.light.off()
 hub.display.off() # desligando as luzes do hub pra economizar bateria
 
-def line_follower(Kp, base_speed): # função para seguir preto e branco
+timer = StopWatch()
+
+def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
     if left_sensor.reflection() < 14 and right_sensor.reflection() > 40: # mtpreto branco
             drive.drive(370, 0)
             wait(300)
@@ -46,7 +48,10 @@ def line_follower(Kp, base_speed): # função para seguir preto e branco
 
     else:
         error = left_sensor.reflection() - right_sensor.reflection()
-        correction = Kp * error
+        last_error = error
+        p = Kp * error
+        d = Kd * (error - last_error)
+        correction = p + d
 
         left_motor_vel = base_speed + correction
         right_motor_vel = base_speed - correction
@@ -125,16 +130,21 @@ def obstacle(side):
             wait(111)
             left_motor.dc(-100)
             right_motor.dc(100)
-            wait(555)
+            wait(667)
             left_motor.brake()
             right_motor.brake()
             wait(67)
             while True:
-                drive.drive(100, 48)
+                timer.reset()
+                drive.drive(100, 49)
                 if right_sensor.reflection() < 25:
                     break
-            drive.drive(700, 0)
-            wait(400)
+            if timer.time() > 67:
+                drive.drive(700, 0)
+                wait(800)
+            else:
+                drive.drive(700, 0)
+                wait(400)
             while True:
                 left_motor.dc(-100)
                 right_motor.dc(80)
@@ -158,7 +168,7 @@ def obstacle(side):
             right_motor.brake()
             wait(67)
             while True:
-                drive.drive(100, -50)
+                drive.drive(100, -49)
                 if left_sensor.reflection() < 25:
                     break
             drive.drive(700, 0)
@@ -178,13 +188,25 @@ def obstacle(side):
 def red_line():
     if left_sensor.color() == Color.RED or right_sensor.color() == Color.RED:
         drive.brake()
-        wait(99999)
+        wait(676767)
+
+hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
+wait(500)
+
+#while True:
+#    print(left_sensor.reflection(), 'esquerda')
+#    print(right_sensor.reflection(), 'direita')
+#    left_motor.dc(80)
+#    right_motor.dc(80)
+#    print(right_motor.speed())
 
 while True: # loop principal
-    if hub.imu.tilt()[0] < -15 or hub.imu.tilt()[0] > 15:
-        line_follower(1.5, 60)
+    if hub.imu.tilt()[0] < -18:
+        line_follower(2, 0.5, 67)
+    elif hub.imu.tilt()[0] > 15:
+        line_follower(2, 0.5, 50)
     else:
-        line_follower(3, 80)
+        line_follower(3, 0.5, 80)
     
     if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
         left_motor.dc(50)
@@ -193,6 +215,6 @@ while True: # loop principal
         if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
             green()
 
-    obstacle(1)
+    obstacle(1) # 1 = esquerda; 2 = direita
 
     red_line()
