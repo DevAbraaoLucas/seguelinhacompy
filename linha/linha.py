@@ -19,10 +19,32 @@ hub.display.off() # desligando as luzes do hub pra economizar bateria
 
 timer = StopWatch()
 
+last_error = 0
+
+def curvas(speed): # se -speed: curva pra esquerda, if +speed: curva pra direita
+    left_motor.dc(speed)
+    right_motor.dc(-speed)
+
+def guinada(side, degrees, speed):
+    hub.imu.reset_heading(0)
+    if side == 'E':
+        while True:
+            curvas(-speed)
+            if hub.imu.heading() <= -degrees: # curva pra esquerda
+                left_motor.brake()
+                right_motor.brake()
+                break
+    else:
+        while True:
+            curvas(speed)
+            if hub.imu.heading() >= degrees: # curva pra direita
+                drive.brake()
+                break
+
 def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
     if left_sensor.reflection() < 14 and right_sensor.reflection() > 40: # mtpreto branco
-            drive.drive(370, 0)
-            wait(300)
+            drive.drive(400, 0)
+            wait(250)
             while right_sensor.reflection() > 25: # gira até o sensor direito ver preto
                 left_motor.dc(-70)
                 right_motor.dc(70)
@@ -34,8 +56,8 @@ def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
             wait(100)
 
     elif left_sensor.reflection() > 40 and right_sensor.reflection() < 14: # branco mtpreto
-            drive.drive(370, 0)
-            wait(300)
+            drive.drive(400, 0)
+            wait(250)
             while left_sensor.reflection() > 25: # gira até o sensor esquerdo ver preto
                 left_motor.dc(70)
                 right_motor.dc(-70)
@@ -47,11 +69,12 @@ def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
             wait(100)
 
     else:
+        global last_error
         error = left_sensor.reflection() - right_sensor.reflection()
-        last_error = error
         p = Kp * error
         d = Kd * (error - last_error)
         correction = p + d
+        last_error = error
 
         left_motor_vel = base_speed + correction
         right_motor_vel = base_speed - correction
@@ -124,27 +147,30 @@ def green(): # função para fazer a verificação do verde e os três possívei
 
 def obstacle(side):
     if ultrassonic_sensor.distance() < 44:
+        left_motor.dc(-100)
+        right_motor.dc(-100)
+        wait(100)
+        drive.brake()
+
         if side == 1: # desvia pra esquerda
-            left_motor.dc(-100)
-            right_motor.dc(-100)
-            wait(111)
-            left_motor.dc(-100)
-            right_motor.dc(100)
-            wait(667)
+            guinada('E', 60, 100)
             left_motor.brake()
             right_motor.brake()
             wait(67)
+            timer.reset()
             while True:
-                timer.reset()
-                drive.drive(100, 49)
+                drive.drive(100, 50)
+                print(timer.time())
                 if right_sensor.reflection() < 25:
                     break
-            if timer.time() > 67:
-                drive.drive(700, 0)
-                wait(800)
-            else:
-                drive.drive(700, 0)
-                wait(400)
+            #if timer.time() > 67:
+            #    drive.drive(700, 0)
+            #    wait(800)
+            #else:
+            #    drive.drive(700, 0)
+            #    wait(400)
+            drive.base(700, 0)
+            wait(400)
             while True:
                 left_motor.dc(-100)
                 right_motor.dc(80)
@@ -206,7 +232,7 @@ while True: # loop principal
     elif hub.imu.tilt()[0] > 15:
         line_follower(2, 0.5, 50)
     else:
-        line_follower(3, 0.5, 80)
+        line_follower(3, 0.3, 80)
     
     if left_sensor.color() == Color.GREEN or right_sensor.color() == Color.GREEN:
         left_motor.dc(50)
