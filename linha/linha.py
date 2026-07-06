@@ -44,7 +44,7 @@ def guinada(side, degrees, speed):
 def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
     if left_sensor.reflection() < 14 and right_sensor.reflection() > 40: # mtpreto branco
             drive.drive(400, 0)
-            wait(250)
+            wait(267)
             while right_sensor.reflection() > 25: # gira até o sensor direito ver preto
                 left_motor.dc(-70)
                 right_motor.dc(70)
@@ -57,7 +57,7 @@ def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
 
     elif left_sensor.reflection() > 40 and right_sensor.reflection() < 14: # branco mtpreto
             drive.drive(400, 0)
-            wait(250)
+            wait(267)
             while left_sensor.reflection() > 25: # gira até o sensor esquerdo ver preto
                 left_motor.dc(70)
                 right_motor.dc(-70)
@@ -94,7 +94,7 @@ def green(): # função para fazer a verificação do verde e os três possívei
         
         if left_sensor.color() == Color.GREEN and right_sensor.color() == Color.WHITE: # verde branco
             drive.drive(400, 0)
-            wait(350)
+            wait(400)
             left_motor.dc(-100)
             right_motor.dc(100)
             wait(500)
@@ -110,7 +110,7 @@ def green(): # função para fazer a verificação do verde e os três possívei
             
         elif left_sensor.color() == Color.WHITE and right_sensor.color() == Color.GREEN: # branco verde
             drive.drive(400, 0)
-            wait(350)
+            wait(400)
             left_motor.dc(100)
             right_motor.dc(-100)
             wait(500)
@@ -159,17 +159,11 @@ def obstacle(side):
             wait(67)
             timer.reset()
             while True:
-                drive.drive(100, 50)
+                drive.drive(100, 48)
                 print(timer.time())
                 if right_sensor.reflection() < 25:
                     break
-            #if timer.time() > 67:
-            #    drive.drive(700, 0)
-            #    wait(800)
-            #else:
-            #    drive.drive(700, 0)
-            #    wait(400)
-            drive.base(700, 0)
+            drive.drive(700, 0)
             wait(400)
             while True:
                 left_motor.dc(-100)
@@ -225,12 +219,13 @@ wait(500)
 #    left_motor.dc(80)
 #    right_motor.dc(80)
 #    print(right_motor.speed())
+#    print(hub.imu.tilt()[0])
 
 while True: # loop principal
-    if hub.imu.tilt()[0] < -18:
-        line_follower(2, 0.5, 67)
-    elif hub.imu.tilt()[0] > 15:
-        line_follower(2, 0.5, 50)
+    if hub.imu.tilt()[0] < -10:
+        line_follower(2, 0, 90)
+    elif hub.imu.tilt()[0] > 5:
+        line_follower(2, 0, 50)
     else:
         line_follower(3, 0.3, 80)
     
