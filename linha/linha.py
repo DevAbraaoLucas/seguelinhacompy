@@ -41,9 +41,10 @@ def guinada(side, degrees, speed):
                 break
 
 def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
-    if left_sensor.reflection() < 10 and right_sensor.reflection() > 40: # mtpreto branco
+    if left_sensor.reflection() < 14 and right_sensor.reflection() > 30: # mtpreto branco
             drive.drive(400, 0)
-            wait(267)
+            wait(250)
+            hub.imu.reset_heading(0)
             while right_sensor.reflection() > 12 or hub.imu.heading() <= -120: # gira até o sensor esquerdo ver preto
                 left_motor.dc(-70)
                 right_motor.dc(70)
@@ -62,11 +63,11 @@ def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
             wait(167)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(100)
+            wait(67)
 
-    elif left_sensor.reflection() > 40 and right_sensor.reflection() < 10: # branco mtpreto
+    elif left_sensor.reflection() > 30 and right_sensor.reflection() < 14: # branco mtpreto
             drive.drive(400, 0)
-            wait(267)
+            wait(250)
             hub.imu.reset_heading(0)
             while left_sensor.reflection() > 12 or hub.imu.heading() >= 120: # gira até o sensor esquerdo ver preto
                 left_motor.dc(70)
@@ -86,7 +87,7 @@ def line_follower(Kp, Kd, base_speed): # função para seguir preto e branco
             wait(167)
             left_motor.dc(-80)
             right_motor.dc(-80)
-            wait(100)
+            wait(67)
 
     else:
         global last_error
@@ -164,7 +165,10 @@ def obstacle(side):
         drive.brake()
 
         if side == 1: # desvia pra esquerda
-            guinada('E', 75, 80)
+            guinada('E', 67, 80)
+            left_motor.dc(100)
+            right_motor.dc(100)
+            wait(200)
             timer.reset()
             while True:
                 left_motor.dc(100)
@@ -172,13 +176,13 @@ def obstacle(side):
                 wait(67)
                 if right_sensor.reflection() < 12:
                     break
-                if timer.time() < 1800:
+                if timer.time() < 2000:
                     left_motor.dc(100)
                     right_motor.dc(-70)
                     wait(67)
                 else:
                     left_motor.dc(100)
-                    right_motor.dc(-75)
+                    right_motor.dc(-67)
                     wait(67)
                 if right_sensor.reflection() < 12:
                     break
@@ -202,7 +206,10 @@ def obstacle(side):
                 wait(100)
             
         elif side == 2: # desvia pra direita
-            guinada('D', 75, 100)
+            guinada('D', 67, 100)
+            left_motor.dc(100)
+            right_motor.dc(100)
+            wait(200)
             timer.reset()
             while True:
                 left_motor.dc(100)
@@ -210,12 +217,12 @@ def obstacle(side):
                 wait(67)
                 if left_sensor.reflection() < 12:
                     break
-                if timer.time() < 1800:
+                if timer.time() < 2000:
                     left_motor.dc(-70)
                     right_motor.dc(100)
                     wait(67)
                 else:
-                    left_motor.dc(-75)
+                    left_motor.dc(-67)
                     right_motor.dc(100)
                     wait(67)
                 if left_sensor.reflection() < 12:
@@ -245,8 +252,8 @@ def red_line():
         wait(99999)
 
 #while True:
-#    print(left_sensor.reflection(), 'esquerda')
-#    print(right_sensor.reflection(), 'direita')
+    print(left_sensor.reflection(), 'esquerda')
+    print(right_sensor.reflection(), 'direita')
 #    print(left_sensor.color(), 'esquerda')
 #    print(right_sensor.color(), 'direita')
 #    left_motor.dc(80)
