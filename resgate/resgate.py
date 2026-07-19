@@ -19,10 +19,13 @@ def movimento_garra(speed, time):
     left_motor_garra.brake()
     right_motor_garra.brake()
 
-while True:    
+while True:
     data = hub.ble.observe(49)
-    
-    if data == 0:
+
+    if data == 0: # assim que começa a seguir linha ou sempre que reiniciar
         movimento_garra(67, 500)
-    else:
-        wait(6.7)
+    elif data == 1: # enquanto ta seguindo linha, trava os dois motores da garra
+        left_motor_garra.hold()
+        right_motor_garra.hold()
+    elif data == 2: # fim do seguimento de linha
+        print('resgate')
