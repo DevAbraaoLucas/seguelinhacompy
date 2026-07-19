@@ -248,23 +248,15 @@ def obstacle(side):
 
 def red_line():
     if left_sensor.color() == Color.RED or right_sensor.color() == Color.RED:
-        drive.brake()
-        wait(99999)
-
-#while True:
-    print(left_sensor.reflection(), 'esquerda')
-    print(right_sensor.reflection(), 'direita')
-#    print(left_sensor.color(), 'esquerda')
-#    print(right_sensor.color(), 'direita')
-#    left_motor.dc(80)
-#    right_motor.dc(80)
-#    print(right_motor.speed())
-#    print(hub.imu.tilt()[0])
+            drive.brake()
+            wait(99999)
 
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
 
-while True: # loop principal
+while True: # loop principal    
+    hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
+    
     if hub.imu.tilt()[0] < -6.7:
         line_follower(2, 0, 90)
     elif hub.imu.tilt()[0] > 5:
@@ -280,5 +272,12 @@ while True: # loop principal
             green()
 
     obstacle(2) # 1 = esquerda; 2 = direita
+
+    '''if 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
+        timer.reset()
+        while 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
+            print(timer.time())
+        if timer.time() > 100:
+            break'''
 
     red_line()
