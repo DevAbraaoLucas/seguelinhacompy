@@ -173,21 +173,21 @@ def obstacle(side):
             while True:
                 left_motor.dc(100)
                 right_motor.dc(100)
-                wait(67)
+                wait(60)
                 if right_sensor.reflection() < 12:
                     break
                 if timer.time() < 2000:
                     left_motor.dc(100)
                     right_motor.dc(-70)
-                    wait(67)
+                    wait(60)
                 else:
                     left_motor.dc(100)
                     right_motor.dc(-67)
-                    wait(67)
+                    wait(60)
                 if right_sensor.reflection() < 12:
                     break
-            drive.drive(700, 0)
-            wait(400)
+            drive.drive(600, 0)
+            wait(300)
             while True:
                 left_motor.dc(-100)
                 right_motor.dc(80)
@@ -214,21 +214,21 @@ def obstacle(side):
             while True:
                 left_motor.dc(100)
                 right_motor.dc(100)
-                wait(67)
+                wait(60)
                 if left_sensor.reflection() < 12:
                     break
                 if timer.time() < 2000:
                     left_motor.dc(-70)
                     right_motor.dc(100)
-                    wait(67)
+                    wait(60)
                 else:
                     left_motor.dc(-67)
                     right_motor.dc(100)
-                    wait(67)
+                    wait(60)
                 if left_sensor.reflection() < 12:
                     break
-            drive.drive(700, 0)
-            wait(400)
+            drive.drive(600, 0)
+            wait(300)
             while True:
                 left_motor.dc(80)
                 right_motor.dc(-100)
