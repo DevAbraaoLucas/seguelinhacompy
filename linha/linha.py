@@ -280,4 +280,13 @@ while True: # loop principal
         if timer.time() > 100:
             break'''
 
+    if hub.ble.observe(94) == 2: # fim do seguimento de linha
+        hub.imu.reset_heading(0)
+        while left_sensor.reflection() > 12 or hub.imu.heading() <= 10: # gira até o sensor esquerdo ver preto
+            left_motor.dc(70)
+            right_motor.dc(-70)
+        if 5 < hub.imu.heading() <= 10:
+            break
+
+
     red_line()
