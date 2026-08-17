@@ -18,20 +18,25 @@ def movimento_garra(speed, time):
     left_motor_garra.dc(speed)
     right_motor_garra.dc(speed)
     wait(time)
+
+def lock_garra():
     left_motor_garra.brake()
     right_motor_garra.brake()
 
-'''while True:
-    print(left_ultrassonic.distance(), 'left')
-    print(right_ultrassonic.distance(), 'right')'''
+#while True:
+#    print(left_ultrassonic.distance(), 'left')
+#    print(right_ultrassonic.distance(), 'right')
+
+soma = left_ultrassonic.distance() + right_ultrassonic.distance()
 
 def paredes_resgate():
-    if left_ultrassonic.distance() < 100 and right_ultrassonic.distance() < 650:
+    if 1000 < soma < 1050:
         hub.ble.broadcast(2)
-        print('entrada esquerda')
-    elif left_ultrassonic.distance() < 650 and right_ultrassonic.distance() < 100:
-        hub.ble.broadcast(2)
-        print('entrada direita')
+        print('resgate')
+        if left_ultrassonic.distance() < 100 and right_ultrassonic.distance() < 650:
+            print('entrada esquerda')
+        elif left_ultrassonic.distance() < 650 and right_ultrassonic.distance() < 100:
+            print('entrada direita')
 
 
 while True:
@@ -40,7 +45,7 @@ while True:
     if data == 0: # assim que começa a seguir linha ou sempre que reiniciar
         movimento_garra(67, 500)
     elif data == 1: # enquanto ta seguindo linha, trava os dois motores da garra
-        left_motor_garra.hold()
-        right_motor_garra.hold()
+        lock_garra()
     
     paredes_resgate()
+ 
