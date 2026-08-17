@@ -1,4 +1,3 @@
-# importando funções necessárias para a programação
 from pybricks.hubs import PrimeHub
 from pybricks.pupdevices import Motor, ColorSensor, UltrasonicSensor, ForceSensor
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop, Axis
@@ -254,6 +253,8 @@ def red_line():
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
 
+data = hub.ble.observe(94)
+
 while True: # loop principal    
     hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
     
@@ -280,13 +281,13 @@ while True: # loop principal
         if timer.time() > 100:
             break'''
 
-    if hub.ble.observe(94) == 2: # fim do seguimento de linha
+    if data == 2: # fim do seguimento de linha
         hub.imu.reset_heading(0)
         while left_sensor.reflection() > 12 or hub.imu.heading() <= 10: # gira até o sensor esquerdo ver preto
             left_motor.dc(70)
             right_motor.dc(-70)
         if 5 < hub.imu.heading() <= 10:
+            guinada('E', 0, 70)
             break
-
 
     red_line()
