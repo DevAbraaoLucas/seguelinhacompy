@@ -253,9 +253,8 @@ def red_line():
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
 
-data = hub.ble.observe(94)
-
 while True: # loop principal    
+    data = hub.ble.observe(94)
     hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
     
     if hub.imu.tilt()[0] < -6.7:
@@ -283,11 +282,18 @@ while True: # loop principal
 
     if data == 2: # fim do seguimento de linha
         hub.imu.reset_heading(0)
-        while left_sensor.reflection() > 12 or hub.imu.heading() <= 10: # gira até o sensor esquerdo ver preto
+        while True:
             left_motor.dc(70)
             right_motor.dc(-70)
-        if 5 < hub.imu.heading() <= 10:
+            if left_sensor.reflection() < 40 or hub.imu.heading() >= 15:
+                break
+        if hub.imu.heading() >= 13:
+            print('resgate')
+            hub.ble.broadcast(3)
             guinada('E', 0, 70)
             break
+        else:
+            hub.ble.broadcast(4)
+            guinada('E', 0, 70)
 
     red_line()
