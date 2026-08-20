@@ -45,6 +45,8 @@ def paredes_resgate():
             print('entrada direita')
 
 while True:
+    hub.ble.broadcast(0)
+
     data = hub.ble.observe(49)
 
     soma = left_ultrassonic.distance() + right_ultrassonic.distance()
