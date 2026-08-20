@@ -281,7 +281,22 @@ while True: # loop principal
             break'''
 
     if data == 2: # fim do seguimento de linha
-        hub.imu.reset_heading(0)
+        timer.reset()
+        print(timer.time())
+        while True:
+            print(timer.time())
+            line_follower(3, 0.367, 80)
+            if left_sensor.reflection() < 50 or right_sensor.reflection() < 50 or timer.time() >= 1300 or hub.ble.observe == 0:
+                break
+        print(timer.time())
+        print(ultrassonic_sensor.distance())
+        if ultrassonic_sensor.distance() < 600 and timer.time() > 1300:
+            hub.ble.broadcast(3)
+            break
+        else:
+            hub.ble.broadcast(4)
+
+        '''hub.imu.reset_heading(0)
         while True:
             left_motor.dc(70)
             right_motor.dc(-70)
@@ -294,6 +309,6 @@ while True: # loop principal
             break
         else:
             hub.ble.broadcast(4)
-            guinada('E', 0, 70)
+            guinada('E', 0, 70)'''
 
     red_line()
