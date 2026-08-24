@@ -5,8 +5,8 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import wait, StopWatch
 
 hub = PrimeHub(broadcast_channel = 94, observe_channels = [49])
-#left_motor_garra = Motor(Port.A, positive_direction=Direction.COUNTERCLOCKWISE)
-#right_motor_garra = Motor(Port.B, positive_direction=Direction.CLOCKWISE)
+left_motor_garra = Motor(Port.A, positive_direction=Direction.COUNTERCLOCKWISE)
+right_motor_garra = Motor(Port.B, positive_direction=Direction.CLOCKWISE)
 #motor_caçamba = Motor(Port.D, positive_direction=Direction.CLOCKWISE)
 left_ultrassonic = UltrasonicSensor(Port.E)
 right_ultrassonic = UltrasonicSensor(Port.F)
@@ -39,21 +39,20 @@ def paredes_resgate():
                 hub.ble.broadcast('D')
             while True:
                 if data == 0:
-                    movimento_garra(67, 500)
+                    movimento_garra(-67, 500)
                     break
                 elif data == 00: 
                     if soma < 600 or soma > 1200:
-                        hub.ble.broadcast(01)
-                elif data == 02: # descer garra
-                    movimento_garra(-67,500)
+                        hub.ble.broadcast(10)
+                elif data == 20: # descer garra
+                    movimento_garra(67,500)
                     lock_garra()
-                elif data == 03: # subir garra
-                    movimento_garra(100, 400)
+                elif data == 30: # subir garra
+                    movimento_garra(-100, 400)
                     lock_garra()
         elif data == 4:
             wait(2000)
         
-
 while True:
     hub.ble.broadcast(0)
 
@@ -61,9 +60,9 @@ while True:
 
     soma = left_ultrassonic.distance() + right_ultrassonic.distance()
 
-    '''if data == 0: # assim que começa a seguir linha ou sempre que reiniciar
-        movimento_garra(67, 500)
+    if data == 0: # assim que começa a seguir linha ou sempre que reiniciar
+        movimento_garra(-67, 500)
     elif data == 1: # enquanto ta seguindo linha, trava os dois motores da garra
-        lock_garra()'''
+        lock_garra()
     
     paredes_resgate()

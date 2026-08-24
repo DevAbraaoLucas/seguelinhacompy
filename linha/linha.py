@@ -256,16 +256,16 @@ def resgate():
         hub.ble.broadcast(00)
         left_motor.dc(-100)
         right_motor.dc(-100)
-        if data == 01:
+        if data == 10:
             left_motor.brake()
             right_motor.brake()
-            hub.ble.broadcast(02)
+            hub.ble.broadcast(20)
             wait(500)
             break
     left_motor.dc(100)
     right_motor.dc(100)
     wait(1000)
-    hub.ble.broadcast(03)
+    hub.ble.broadcast(30)
     left_motor.dc(-40)
     right_motor.dc(-40)
     wait(400)
