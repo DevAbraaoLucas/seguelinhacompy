@@ -250,6 +250,27 @@ def red_line():
             drive.brake()
             wait(99999)
 
+def resgate():
+    lado_entrada = data
+    while True:
+        hub.ble.broadcast(00)
+        left_motor.dc(-100)
+        right_motor.dc(-100)
+        if data == 01:
+            left_motor.brake()
+            right_motor.brake()
+            hub.ble.broadcast(02)
+            wait(500)
+            break
+    left_motor.dc(100)
+    right_motor.dc(100)
+    wait(1000)
+    hub.ble.broadcast(03)
+    left_motor.dc(-40)
+    right_motor.dc(-40)
+    wait(400)
+    guinada(lado_entrada, 90, 100)
+
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
 
@@ -282,11 +303,10 @@ while True: # loop principal
 
     if data == 2: # fim do seguimento de linha
         timer.reset()
-        print(timer.time())
         while True:
             print(timer.time())
             line_follower(3, 0.367, 80)
-            if left_sensor.reflection() < 50 or right_sensor.reflection() < 50 or timer.time() >= 1300 or hub.ble.observe == 0:
+            if left_sensor.reflection() < 50 or right_sensor.reflection() < 50 or timer.time() >= 1111 or data == 0:
                 break
         print(timer.time())
         print(ultrassonic_sensor.distance())
@@ -295,20 +315,5 @@ while True: # loop principal
             break
         else:
             hub.ble.broadcast(4)
-
-        '''hub.imu.reset_heading(0)
-        while True:
-            left_motor.dc(70)
-            right_motor.dc(-70)
-            if left_sensor.reflection() < 40 or hub.imu.heading() >= 15:
-                break
-        if hub.imu.heading() >= 13:
-            print('resgate')
-            hub.ble.broadcast(3)
-            guinada('E', 0, 70)
-            break
-        else:
-            hub.ble.broadcast(4)
-            guinada('E', 0, 70)'''
 
     red_line()
