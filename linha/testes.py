@@ -52,3 +52,10 @@ while True:
 # verde normal: h = 150, s = 73, v = 31
 # verde escuro: h = 167, s = 43, v = 35
 # vermelho: h = 260, s = 19, v = 77
+
+'''if 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
+    timer.reset()
+    while 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
+        print(timer.time())
+    if timer.time() > 100:
+        break'''

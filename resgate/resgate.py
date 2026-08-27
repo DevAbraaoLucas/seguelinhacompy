@@ -14,6 +14,12 @@ right_ultrassonic = UltrasonicSensor(Port.F)
 hub.display.off()
 hub.light.off() # desligando as luzes do hub pra economizar bateria
 
+timer = StopWatch()
+
+
+
+data = hub.ble.observe(49)
+
 def movimento_garra(speed, time):
     left_motor_garra.dc(speed)
     right_motor_garra.dc(speed)
@@ -23,40 +29,43 @@ def lock_garra():
     left_motor_garra.brake()
     right_motor_garra.brake()
 
-#while True:
-#    print(left_ultrassonic.distance(), 'left')
-#    print(right_ultrassonic.distance(), 'right')
-#    print(soma)
-
 def paredes_resgate():
+    global data
     if 700 < soma < 730 or 1000 < soma < 1030:
         hub.ble.broadcast(2)
         print('resgate?')
         if data == 3:
-            if left_ultrassonic.distance() < 100 and right_ultrassonic.distance() < 650:
+            '''if left_ultrassonic.distance() < 100 and right_ultrassonic.distance() < 650:
                 hub.ble.broadcast('E')
             elif left_ultrassonic.distance() < 650 and right_ultrassonic.distance() < 100:
-                hub.ble.broadcast('D')
+                hub.ble.broadcast('D')'''
             while True:
+                data = hub.ble.observe(49)
                 if data == 0:
                     movimento_garra(-67, 500)
                     break
-                elif data == 00: 
-                    if soma < 600 or soma > 1200:
-                        hub.ble.broadcast(10)
-                elif data == 20: # descer garra
+                elif data == 00: # descer garra
+                    print('RECEBI DESCE')
                     movimento_garra(67,500)
                     lock_garra()
-                elif data == 30: # subir garra
+                elif data == 10: # subir garra
+                    print('SOBE GARRA')
                     movimento_garra(-100, 400)
                     lock_garra()
         elif data == 4:
-            wait(2000)
+            wait(1000)
         
 while True:
     hub.ble.broadcast(0)
 
     data = hub.ble.observe(49)
+    '''if data is None:
+        timer.reset()
+        while True:
+            if data != None:
+                break
+            if timer.time() > 20000:
+                hub.system.shutdown()'''
 
     soma = left_ultrassonic.distance() + right_ultrassonic.distance()
 

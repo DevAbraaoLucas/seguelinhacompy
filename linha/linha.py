@@ -20,6 +20,11 @@ timer = StopWatch()
 
 last_error = 0
 
+def stop(time):
+    left_motor.brake()
+    right_motor.brake()
+    wait(time)
+
 def curvas(speed): # se -speed: curva pra esquerda, se +speed: curva pra direita
     left_motor.dc(speed)
     right_motor.dc(-speed)
@@ -251,28 +256,33 @@ def red_line():
             wait(99999)
 
 def resgate():
-    lado_entrada = data
-    while True:
-        hub.ble.broadcast(00)
-        left_motor.dc(-100)
-        right_motor.dc(-100)
-        if data == 10:
-            left_motor.brake()
-            right_motor.brake()
-            hub.ble.broadcast(20)
-            wait(500)
-            break
+    left_motor.dc(-100)
+    right_motor.dc(-100)
+    wait(1100)
+    stop(1000)
+    hub.ble.broadcast(00)
+    wait(500)
+    stop(1000)
     left_motor.dc(100)
     right_motor.dc(100)
     wait(1000)
-    hub.ble.broadcast(30)
+    stop(1000)
+    hub.ble.broadcast(10)
     left_motor.dc(-40)
     right_motor.dc(-40)
     wait(400)
+    stop(1000)
     guinada(lado_entrada, 90, 100)
 
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
+
+# ANTES DE COMEÇAR OS ROUNDS, NÃO ESQUECER EM HIPÓTESE ALGUMA:
+# | verificar a leitura dos verdes
+# | verificar a leitura de reflexões do sensor de cor
+# | mexer no lado de desvio do obstáculo
+# | verificar a distância do obstáculo
+# | verificar a leitura do vermelho
 
 while True: # loop principal    
     data = hub.ble.observe(94)
@@ -294,26 +304,20 @@ while True: # loop principal
 
     obstacle(2) # 1 = esquerda; 2 = direita
 
-    '''if 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
-        timer.reset()
-        while 49 <= left_sensor.reflection() <= 53 and 49 <= right_sensor.reflection() <= 53:
-            print(timer.time())
-        if timer.time() > 100:
-            break'''
-
     if data == 2: # fim do seguimento de linha
         timer.reset()
         while True:
-            print(timer.time())
             line_follower(3, 0.367, 80)
             if left_sensor.reflection() < 50 or right_sensor.reflection() < 50 or timer.time() >= 1111 or data == 0:
                 break
-        print(timer.time())
-        print(ultrassonic_sensor.distance())
-        if ultrassonic_sensor.distance() < 600 and timer.time() > 1300:
+        if timer.time() >= 1100:
             hub.ble.broadcast(3)
             break
         else:
             hub.ble.broadcast(4)
 
     red_line()
+
+stop(1000)
+
+resgate()
