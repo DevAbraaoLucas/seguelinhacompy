@@ -136,7 +136,7 @@ def verde(): # função para fazer a verificação do verde e os três possívei
 
         if sensor_esquerdo.color() == Color.GREEN and sensor_direito.color() == Color.WHITE: # verde branco
             dois_motores.drive(400, 0)
-            wait(400)
+            wait(300)
             guinada('E', 40, 100)
             while sensor_direito.reflection() > 20:
                 motor_esquerdo.dc(-70)
@@ -150,7 +150,7 @@ def verde(): # função para fazer a verificação do verde e os três possívei
 
         elif sensor_esquerdo.color() == Color.WHITE and sensor_direito.color() == Color.GREEN: # branco verde
             dois_motores.drive(400, 0)
-            wait(400)
+            wait(300)
             guinada('D', 40, 100)
             while sensor_esquerdo.reflection() > 20:
                 motor_esquerdo.dc(70)
@@ -164,11 +164,11 @@ def verde(): # função para fazer a verificação do verde e os três possívei
 
         elif sensor_esquerdo.color() == Color.GREEN and sensor_direito.color() == Color.GREEN: # verde verde
             dois_motores.drive(400, 0)
-            wait(444)
+            wait(250)
             guinada('D', 167, 100)
             while sensor_esquerdo.reflection() > 25:
                 motor_esquerdo.dc(75)
-                motor_direito.dc(-75)
+                motor_direito.dc(-100)
             motor_esquerdo.dc(-70)
             motor_direito.dc(70)
             wait(150)
@@ -198,7 +198,7 @@ def obstaculo(lado):
                 motor_esquerdo.dc(100)
                 motor_direito.dc(100)
                 wait(60)
-                if sensor_direito.reflection() < 12:
+                if sensor_direito.reflection() < 25:
                     break
                 if timer.time() < 2000:
                     motor_esquerdo.dc(100)
@@ -206,12 +206,12 @@ def obstaculo(lado):
                     wait(60)
                 else:
                     motor_esquerdo.dc(100)
-                    motor_direito.dc(-67)
+                    motor_direito.dc(-60)
                     wait(60)
-                if sensor_direito.reflection() < 12:
+                if sensor_direito.reflection() < 25:
                     break
             dois_motores.drive(600, 0)
-            wait(300)
+            wait(250)
             while True:
                 motor_esquerdo.dc(-100)
                 motor_direito.dc(80)
@@ -223,11 +223,11 @@ def obstaculo(lado):
             if timer.time() > 1500:
                 motor_esquerdo.dc(-80)
                 motor_direito.dc(-80)
-                wait(150)
+                wait(130)
             else:
                 motor_esquerdo.dc(-80)
                 motor_direito.dc(-80)
-                wait(100)
+                wait(80)
 
         elif lado == 2: # desvia pra direita
             guinada('D', 67, 100)
@@ -239,20 +239,20 @@ def obstaculo(lado):
                 motor_esquerdo.dc(100)
                 motor_direito.dc(100)
                 wait(60)
-                if sensor_esquerdo.reflection() < 12:
+                if sensor_esquerdo.reflection() < 25:
                     break
                 if timer.time() < 2000:
                     motor_esquerdo.dc(-70)
                     motor_direito.dc(100)
                     wait(60)
                 else:
-                    motor_esquerdo.dc(-67)
+                    motor_esquerdo.dc(-60)
                     motor_direito.dc(100)
                     wait(60)
-                if sensor_esquerdo.reflection() < 12:
+                if sensor_esquerdo.reflection() < 25:
                     break
             dois_motores.drive(600, 0)
-            wait(300)
+            wait(250)
             while True:
                 motor_esquerdo.dc(80)
                 motor_direito.dc(-100)
@@ -264,11 +264,11 @@ def obstaculo(lado):
             if timer.time() > 1500:
                 motor_esquerdo.dc(-80)
                 motor_direito.dc(-80)
-                wait(150)
+                wait(130)
             else:
                 motor_esquerdo.dc(-80)
                 motor_direito.dc(-80)
-                wait(100)
+                wait(80)
 
 def linha_vermelha():
     if sensor_esquerdo.color() == Color.RED or sensor_direito.color() == Color.RED:
@@ -490,7 +490,7 @@ while True: # loop principal
     elif hub.imu.tilt()[0] > 5:
         seguir_linha(2, 0, 50)
     else:
-        seguir_linha(3, 0.367, 80)
+        seguir_linha(3, 0.367, 100)
 
     if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
         motor_esquerdo.dc(50)
