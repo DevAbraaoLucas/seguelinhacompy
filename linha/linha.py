@@ -69,19 +69,25 @@ def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
             dois_motores.drive(400, 0)
             wait(250)
             hub.imu.reset_heading(0)
-            while sensor_direito.reflection() > 12 or hub.imu.heading() <= -120: # gira até o sensor esquerdo ver preto
+            timer.reset()
+            while sensor_direito.reflection() > 12 or hub.imu.heading() <= -120: # gira até o sensor direito ver preto
                 motor_esquerdo.dc(-70)
                 motor_direito.dc(70)
+                if timer.time() >= 8067:
+                    motor_esquerdo.dc(100)
+                    motor_direito.dc(100)
+                    wait(140)
+                    break
                 if hub.imu.heading() <= -120:
                     while True:
                         motor_esquerdo.dc(70)
                         motor_direito.dc(-70)
-                        if sensor_esquerdo.reflection() < 12 or hub.imu.heading() >= -6.7:
+                        if sensor_esquerdo.reflection() < 12 or hub.imu.heading() >= -6.7 or timer.time() >= 8067:
                             break
                     if hub.imu.heading() >= -6.7:
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
-                        wait(167)
+                        wait(67)
             motor_esquerdo.dc(70)
             motor_direito.dc(-70)
             wait(167)
@@ -93,19 +99,25 @@ def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
             dois_motores.drive(400, 0)
             wait(250)
             hub.imu.reset_heading(0)
+            timer.reset()
             while sensor_esquerdo.reflection() > 12 or hub.imu.heading() >= 120: # gira até o sensor esquerdo ver preto
                 motor_esquerdo.dc(70)
                 motor_direito.dc(-70)
+                if timer.time() >= 8067:
+                    motor_esquerdo.dc(100)
+                    motor_direito.dc(100)
+                    wait(140)
+                    break
                 if hub.imu.heading() >= 120:
                     while True:
                         motor_esquerdo.dc(-70)
                         motor_direito.dc(70)
-                        if sensor_direito.reflection() < 12 or hub.imu.heading() <= 6.7:
+                        if sensor_direito.reflection() < 12 or hub.imu.heading() <= 6.7 or timer.time() >= 8067:
                             break
                     if hub.imu.heading() <= 6.7:
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
-                        wait(167)
+                        wait(67)
             motor_esquerdo.dc(-70)
             motor_direito.dc(70)
             wait(167)
@@ -197,21 +209,21 @@ def obstaculo(lado):
             while True:
                 motor_esquerdo.dc(100)
                 motor_direito.dc(100)
-                wait(60)
+                wait(60) # anda um pouco pra frente
                 if sensor_direito.reflection() < 25:
                     break
                 if timer.time() < 2000:
                     motor_esquerdo.dc(100)
                     motor_direito.dc(-70)
-                    wait(60)
+                    wait(60) # anda um pouco pro lado
                 else:
                     motor_esquerdo.dc(100)
                     motor_direito.dc(-60)
-                    wait(60)
+                    wait(60) # anda um pouco pro lado
                 if sensor_direito.reflection() < 25:
                     break
             dois_motores.drive(600, 0)
-            wait(250)
+            wait(267)
             while True:
                 motor_esquerdo.dc(-100)
                 motor_direito.dc(80)
@@ -252,7 +264,7 @@ def obstaculo(lado):
                 if sensor_esquerdo.reflection() < 25:
                     break
             dois_motores.drive(600, 0)
-            wait(250)
+            wait(267)
             while True:
                 motor_esquerdo.dc(80)
                 motor_direito.dc(-100)
@@ -472,7 +484,7 @@ def resgate():
     procurar_saida()        # depois de entregar, procura a saída
 
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
-wait(500)
+#wait(500) # NAO ESQUECER DE TIRAR ISSO
 
 # ANTES DE COMEÇAR OS ROUNDS, NÃO ESQUECER EM HIPÓTESE ALGUMA:
 # | verificar a leitura dos verdes
@@ -490,7 +502,7 @@ while True: # loop principal
     elif hub.imu.tilt()[0] > 5:
         seguir_linha(2, 0, 50)
     else:
-        seguir_linha(3, 0.367, 100)
+        seguir_linha(3, 0.367, 80)
 
     if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
         motor_esquerdo.dc(50)
@@ -499,7 +511,7 @@ while True: # loop principal
         if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
             verde()
 
-    obstaculo(2) # 1 = esquerda; 2 = direita
+    obstaculo(1) # 1 = esquerda; 2 = direita
 
     if dados == 2: # fim do seguimento de linha
         timer.reset()
