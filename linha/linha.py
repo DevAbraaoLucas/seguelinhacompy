@@ -1,8 +1,9 @@
 from pybricks.hubs import PrimeHub
+from pybricks.iodevices import PUPDevice
 from pybricks.pupdevices import Motor, ColorSensor, UltrasonicSensor
 from pybricks.parameters import Color, Direction, Port, Axis
 from pybricks.robotics import DriveBase
-from pybricks.tools import wait, StopWatch
+from pybricks.tools import wait, StopWatch, run_task
 
 hub = PrimeHub(top_side = Axis.Z, front_side = Axis.Y, broadcast_channel = 49, observe_channels = [94])
 motor_esquerdo = Motor(Port.A, positive_direction=Direction.COUNTERCLOCKWISE)
@@ -10,6 +11,8 @@ motor_direito = Motor(Port.B, positive_direction=Direction.CLOCKWISE)
 dois_motores = DriveBase(motor_esquerdo, motor_direito, 31, 126)
 sensor_esquerdo = ColorSensor(Port.C)
 sensor_direito = ColorSensor(Port.D)
+cru_esquerdo = PUPDevice(Port.C)
+cru_direito = PUPDevice(Port.D)
 sensor_ultrassonico = UltrasonicSensor(Port.E)
 sensor_cor_frente = ColorSensor(Port.F)
 
@@ -64,7 +67,7 @@ def guinada(lado, graus, velocidade):
                 dois_motores.brake()
                 break
 
-def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
+def seguir_linha(Kp, Kd, velocidade_base, vel_min=-100): # função para seguir preto e branco
     if sensor_esquerdo.reflection() < 14 and sensor_direito.reflection() > 30: # mtpreto branco
             dois_motores.drive(400, 0)
             wait(250)
@@ -87,14 +90,14 @@ def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
                     if hub.imu.heading() >= -6.7:
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
-                        wait(67)
+                        wait(100)
             motor_esquerdo.dc(70)
             motor_direito.dc(-70)
             wait(167)
             motor_esquerdo.dc(-80)
             motor_direito.dc(-80)
             wait(67)
-
+        
     elif sensor_esquerdo.reflection() > 30 and sensor_direito.reflection() < 14: # branco mtpreto
             dois_motores.drive(400, 0)
             wait(250)
@@ -117,7 +120,7 @@ def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
                     if hub.imu.heading() <= 6.7:
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
-                        wait(67)
+                        wait(100)
             motor_esquerdo.dc(-70)
             motor_direito.dc(70)
             wait(167)
@@ -133,8 +136,8 @@ def seguir_linha(Kp, Kd, velocidade_base): # função para seguir preto e branco
         correcao = p + d
         ultimo_erro = erro
 
-        motor_esquerdo.dc(velocidade_base + correcao)
-        motor_direito.dc(velocidade_base - correcao)
+        motor_esquerdo.dc(max(vel_min, min(100, velocidade_base + correcao)))
+        motor_direito.dc(max(vel_min, min(100, velocidade_base - correcao)))
 
 def verde(): # função para fazer a verificação do verde e os três possíveis casos de verde
     motor_esquerdo.dc(-60)
@@ -148,7 +151,7 @@ def verde(): # função para fazer a verificação do verde e os três possívei
 
         if sensor_esquerdo.color() == Color.GREEN and sensor_direito.color() == Color.WHITE: # verde branco
             dois_motores.drive(400, 0)
-            wait(300)
+            wait(333)
             guinada('E', 40, 100)
             while sensor_direito.reflection() > 20:
                 motor_esquerdo.dc(-70)
@@ -162,7 +165,7 @@ def verde(): # função para fazer a verificação do verde e os três possívei
 
         elif sensor_esquerdo.color() == Color.WHITE and sensor_direito.color() == Color.GREEN: # branco verde
             dois_motores.drive(400, 0)
-            wait(300)
+            wait(333)
             guinada('D', 40, 100)
             while sensor_esquerdo.reflection() > 20:
                 motor_esquerdo.dc(70)
@@ -201,7 +204,7 @@ def obstaculo(lado):
         dois_motores.brake()
 
         if lado == 1: # desvia pra esquerda
-            guinada('E', 67, 80)
+            guinada('E', 67, 100)
             motor_esquerdo.dc(100)
             motor_direito.dc(100)
             wait(200)
@@ -250,17 +253,17 @@ def obstaculo(lado):
             while True:
                 motor_esquerdo.dc(100)
                 motor_direito.dc(100)
-                wait(60)
+                wait(60) # anda um pouco pra frente
                 if sensor_esquerdo.reflection() < 25:
                     break
                 if timer.time() < 2000:
                     motor_esquerdo.dc(-70)
                     motor_direito.dc(100)
-                    wait(60)
+                    wait(60) # anda um pouco pro lado
                 else:
                     motor_esquerdo.dc(-60)
                     motor_direito.dc(100)
-                    wait(60)
+                    wait(60) # anda um pouco pro lado
                 if sensor_esquerdo.reflection() < 25:
                     break
             dois_motores.drive(600, 0)
@@ -281,6 +284,20 @@ def obstaculo(lado):
                 motor_esquerdo.dc(-80)
                 motor_direito.dc(-80)
                 wait(80)
+
+def _na_faixa_prata():
+    return (30 < sensor_esquerdo.reflection() < 50
+            and 30 < sensor_direito.reflection() < 50)
+
+def fita_prata():
+    if not _na_faixa_prata():
+        return False
+    timer.reset()
+    while _na_faixa_prata():
+        if timer.time() >= 150:
+            return True
+        seguir_linha(3, 0.367, 55)
+    return False
 
 def linha_vermelha():
     if sensor_esquerdo.color() == Color.RED or sensor_direito.color() == Color.RED:
@@ -468,15 +485,20 @@ def procurar_saida():
             virar_na_parede() # chegou numa quina/beirada sem achar abertura
 
 def resgate():
+    motor_esquerdo.dc(70)
+    motor_direito.dc(70)
+    wait(200)
     timer.reset()
-    while timer.time() < 500:
+    motor_esquerdo.stop()
+    motor_direito.stop()
+    while timer.time() < 200:
         lado_entrada = hub.ble.observe(94)
-        parar(1)
     print(lado_entrada)
 
-    motor_esquerdo.dc(-100)
-    motor_direito.dc(-100)
-    wait(1100) # volta pra entrada
+    hub.ble.broadcast(20) # desce a garra
+    motor_esquerdo.dc(-60)
+    motor_direito.dc(-60)
+    wait(300) # volta pra entrada
     parar(1000)
 
     varredura(lado_entrada)
@@ -484,7 +506,7 @@ def resgate():
     procurar_saida()        # depois de entregar, procura a saída
 
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
-#wait(500) # NAO ESQUECER DE TIRAR ISSO
+wait(500)
 
 # ANTES DE COMEÇAR OS ROUNDS, NÃO ESQUECER EM HIPÓTESE ALGUMA:
 # | verificar a leitura dos verdes
@@ -493,12 +515,18 @@ hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o h
 # | verificar a distância do obstáculo
 # | verificar a leitura do vermelho
 
+'''while True:
+    print(sensor_esquerdo.reflection(), sensor_direito.reflection())
+    print(sensor_esquerdo.color(), sensor_direito.color())
+    seguir_linha(3, 0, 50)'''
+
+    
 while True: # loop principal
     dados = hub.ble.observe(94)
     hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
 
     if hub.imu.tilt()[0] < -6.7:
-        seguir_linha(2, 0, 90)
+        seguir_linha(1.9, 0, 90, vel_min=50)
     elif hub.imu.tilt()[0] > 5:
         seguir_linha(2, 0, 50)
     else:
@@ -511,9 +539,9 @@ while True: # loop principal
         if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
             verde()
 
-    obstaculo(1) # 1 = esquerda; 2 = direita
+    obstaculo(2) # 1 = esquerda; 2 = direita
 
-    if dados == 2: # fim do seguimento de linha
+    '''if dados == 2: # fim do seguimento de linha
         timer.reset()
         while True:
             seguir_linha(3, 0.367, 80)
@@ -523,11 +551,15 @@ while True: # loop principal
             hub.ble.broadcast(3)
             break
         else:
-            hub.ble.broadcast(4)
+            hub.ble.broadcast(4)'''
+
+    if fita_prata():
+        hub.ble.broadcast(3)
+        break
 
     linha_vermelha()
 
-while fim_resgate != True:
+while fim_resgate != True: # loop de resgate
     resgate()
 
 while True:

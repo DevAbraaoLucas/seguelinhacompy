@@ -66,34 +66,32 @@ def entregar_bolinhas():
 
 def resgate():
     global dados, resgate_concluido
-    if 700 < soma < 730 or 1000 < soma < 1030:
-        hub.ble.broadcast(2)
-        if dados == 3:
-            if ultrassonico_esquerdo.distance() < 100 and ultrassonico_direito.distance() < 650:
+    if dados == 3:
+        timer.reset()
+        while timer.time() < 500:
+            if ultrassonico_esquerdo.distance() < 100:
                 hub.ble.broadcast('E')
-            elif ultrassonico_esquerdo.distance() < 650 and ultrassonico_direito.distance() < 100:
+            elif ultrassonico_direito.distance() < 100:
                 hub.ble.broadcast('D')
             else:
                 hub.ble.broadcast('M')
-            while True:
-                dados = hub.ble.observe(49)
-                if resgate_concluido == True:
-                    hub.ble.broadcast(99)
-                    if dados == 40:
-                        checar_paredes_saida()
-                if dados == 0:
-                    movimento_garra(-67, 500)
-                    break
-                elif dados == 10: # subir garra
-                    movimento_garra(-100, 400)
-                    travar_garra()
-                elif dados == 20: # descer garra
-                    movimento_garra(67,500)
-                    travar_garra()
-                elif dados == 30: # abrir/fechar caçamba pra entregar
-                    entregar_bolinhas()
-        elif dados == 4:
-            wait(1000)
+        while True:
+            dados = hub.ble.observe(49)
+            if resgate_concluido == True:
+                hub.ble.broadcast(99)
+                if dados == 40:
+                    checar_paredes_saida()
+            if dados == 0:
+                movimento_garra(-67, 500)
+                break
+            elif dados == 10: # subir garra
+                movimento_garra(-100, 300)
+                travar_garra()
+            elif dados == 20: # descer garra
+                movimento_garra(80,300)
+                travar_garra()
+            elif dados == 30: # abrir/fechar caçamba pra entregar
+                entregar_bolinhas()
 
 while True:
     hub.ble.broadcast(0)
@@ -107,11 +105,10 @@ while True:
             if timer.time() > 20000:
                 hub.system.shutdown()'''
 
-    soma = ultrassonico_esquerdo.distance() + ultrassonico_direito.distance()
-
     if dados == 0: # assim que começa a seguir linha ou sempre que reiniciar
-        movimento_garra(-67, 500)
+        movimento_garra(67, 500)
     elif dados == 1: # enquanto ta seguindo linha, trava os dois motores da garra
         travar_garra()
 
     resgate()
+            
