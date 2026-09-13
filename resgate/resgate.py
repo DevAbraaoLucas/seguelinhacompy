@@ -33,7 +33,10 @@ hub.light.off() # desligando as luzes do hub pra economizar bateria
 timer = StopWatch()
 
 dados = hub.ble.observe(49)
-resgate_concluido = False # checkpoint: vira True quando o principal avisar que entregou as bolinhas
+
+hub.speaker.volume(40)
+def sinal(frequencia):
+    hub.speaker.beep(frequencia)
 
 def movimento_garra(velocidade, tempo):
     motor_garra_esquerdo.dc(velocidade)
@@ -50,53 +53,67 @@ def movimento_cacamba(velocidade, tempo):
     motor_cacamba.brake()
 
 def checar_paredes_saida():
-    if ultrassonico_esquerdo.distance() > 150:
+    if ultrassonico_esquerdo.distance() > 200:
         hub.ble.broadcast('S')
+    else:
+        hub.ble.broadcast('N')
 
 def entregar_bolinhas():
-    # ajustar sentido (sinal de velocidade) e tempo de cada movimento pro mecanismo real.
-    global resgate_concluido
-    movimento_cacamba(80, 300)  # abre a caçamba
-    wait(5000)  # tempo pras vítimas caírem
+    motor_cacamba.dc(40)  # abre a caçamba
+    wait(1000)
+    motor_cacamba.brake()
+    wait(4000)  # tempo pras vítimas caírem
     movimento_cacamba(-80, 300)  # fecha a caçamba de novo
-    resgate_concluido = True
-    hub.ble.broadcast(99)
-    wait(800) # segura o sinal de "concluído" tempo suficiente pro principal perceber,
-              # antes do loop abaixo trocar de assunto pros sensores laterais
+    timer.reset()
+    while timer.time() < 1000:
+        hub.ble.broadcast(99)
 
 def resgate():
-    global dados, resgate_concluido
+    global dados
     if dados == 3:
         timer.reset()
-        while timer.time() < 500:
-            if ultrassonico_esquerdo.distance() < 100:
+        while timer.time() < 400:
+            if ultrassonico_esquerdo.distance() < 200:
                 hub.ble.broadcast('E')
-            elif ultrassonico_direito.distance() < 100:
+            elif ultrassonico_direito.distance() < 200:
                 hub.ble.broadcast('D')
             else:
                 hub.ble.broadcast('M')
+
         while True:
+            sinal(2000)
             dados = hub.ble.observe(49)
-            if resgate_concluido == True:
-                hub.ble.broadcast(99)
-                if dados == 40:
-                    checar_paredes_saida()
-            if dados == 0:
-                movimento_garra(-67, 500)
+            if dados == 0: # hub de cima foi reiniciado
+                movimento_garra(67, 500)
                 break
+
+            elif dados == 1: # fim do resgate
+                break
+
             elif dados == 10: # subir garra
-                movimento_garra(-100, 300)
+                movimento_garra(80, 300)
                 travar_garra()
+
             elif dados == 20: # descer garra
-                movimento_garra(80,300)
+                movimento_garra(-80, 300)
                 travar_garra()
+
             elif dados == 30: # abrir/fechar caçamba pra entregar
                 entregar_bolinhas()
 
+            elif dados == 40: # verifica se tem saída
+                checar_paredes_saida()
+
+            elif dados == 67: # neutro
+                pass
+
 while True:
+    sinal(67)
+
     hub.ble.broadcast(0)
 
     dados = hub.ble.observe(49)
+    
     '''if dados is None:
         timer.reset()
         while True:
