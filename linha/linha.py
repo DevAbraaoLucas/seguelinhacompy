@@ -288,15 +288,16 @@ def fita_prata():
         return False
     timer.reset()
     while na_faixa_prata():
-        if timer.time() >= 150:            
+        if timer.time() >= 100:            
             return True
         seguir_linha(3, 0.367, 55)
     return False
 
 def linha_vermelha():
     if sensor_esquerdo.color() == Color.RED or sensor_direito.color() == Color.RED:
-            dois_motores.brake()
-            wait(99999)
+            while True:
+                parar(1)
+                hub.speaker.beep(5000)
 
 def andar_reto(velocidade, tempo, Kp=1):
     hub.imu.reset_heading(0)
@@ -312,62 +313,62 @@ def andar_reto(velocidade, tempo, Kp=1):
             motor_direito.brake()
             break
 
-def andar_ate_parede(velocidade, distancia_parede, tempo_max=4000, Kp=1):
-    # ajustar velocidade/distancia_parede/tempo_max.
+def andar_ate_parede(velocidade, distancia_parede, tempo_max=5000, Kp=1):
     hub.imu.reset_heading(0)
     timer.reset()
-    while sensor_ultrassonico.distance() > distancia_parede and timer.time() < tempo_max:
+    while sensor_cor_frente.color() != None and timer.time() < tempo_max:
+        print(sensor_cor_frente.color())
         erro = hub.imu.heading()
         motor_esquerdo.dc(velocidade + (-Kp * erro))
         motor_direito.dc(velocidade - (-Kp * erro))
-    motor_esquerdo.brake()
-    motor_direito.brake()
+        if sensor_esquerdo.reflection() < 45 or sensor_direito.reflection() < 45:
+            break
 
 def varredura(lado_inicial):
-    lado_livre = 'D' if lado_inicial == 'E' else 'E' # lado sem parede perto (achado na entrada)
+    if lado_inicial == 'E' or lado_inicial == 'D': # entrada na esquerda ou direita
+        lado_livre = 'D' if lado_inicial == 'E' else 'E' # lado sem parede perto (achado na entrada)
 
-    andar_reto(70, 3500)
-    motor_esquerdo.dc(-45)
-    motor_direito.dc(-45)
-    hub.ble.broadcast(10) # sobe a garra
-    wait(400)
+        andar_reto(70, 3400)
+        motor_esquerdo.dc(-45)
+        motor_direito.dc(-45)
+        hub.ble.broadcast(10) # sobe a garra
+        wait(400)
 
-    guinada(lado_livre, 90, 100) # vira pro lado sem parede perto
-    hub.ble.broadcast(20)
-    andar_reto(-100, 400)
+        guinada(lado_livre, 90, 100) # vira pro lado sem parede perto
+        hub.ble.broadcast(20)
+        andar_reto(-100, 1000)
 
-    andar_reto(100, 5000) # até a parede lateral
-    hub.ble.broadcast(10)
-    motor_esquerdo.dc(-55)
-    motor_direito.dc(-55)
-    wait(400)
+        andar_reto(100, 5000) # até a parede lateral
+        hub.ble.broadcast(10)
+        motor_esquerdo.dc(-55)
+        motor_direito.dc(-55)
+        wait(1000)
 
-    hub.ble.broadcast(67)
+        andar_ate_parede(100, 67)
+        andar_reto(-100, 200)
 
-    guinada('D', 90, 100) # alinha com a parede - pronto pra procurar_entrega()
+        parar(500)
+
+        hub.ble.broadcast(67)
+
+        parar(500)
+        andar_reto(100, 300)
+
+        guinada('D', 90, 100) # alinha com a parede - pronto pra procurar_entrega()
+
+    else: # entrada no meio
+        andar_reto(100, 300)
+
 
 def ir_para_entrega():
     global resgate_concluido
-    parar(500)
+    parar(300)
     andar_reto(-100, 200)
 
-    hub.ble.broadcast(20) # desce a garra
-    wait(400)
-    motor_esquerdo.dc(90)
-    motor_direito.dc(45)
-    wait(670)
-    andar_reto(67, 3000)
-
-    hub.ble.broadcast(10) # sobe a garra
-    wait(200)
-    motor_esquerdo.dc(-40)
-    motor_direito.dc(-40)
-    wait(1500)
-
-    guinada('D', 90, 100) # ajustar lado/velocidade - vira de costas pra encostar a caçamba
+    guinada('D', 180, 100)
     motor_esquerdo.dc(-100)
     motor_direito.dc(-100)
-    wait(1000) # ajustar - encosta a parte de trás (caçamba) na área de resgate
+    wait(1000)
 
     hub.ble.broadcast(30) # abre/fecha a caçamba (entregar_bolinhas() no secundário)
     timer.reset()
@@ -384,19 +385,28 @@ def ir_para_entrega():
     resgate_concluido = True
 
 def achou_entrega(): # checa se o sensor de cor da frente está vendo alguma área de entrega
+    print(sensor_cor_frente.color())
     return sensor_cor_frente.color() == Color.GREEN or sensor_cor_frente.color() == Color.RED
 
 def procurar_entrega():
     global resgate_concluido
     while True:
-        andar_ate_parede(100, 50)
+        andar_ate_parede(100, 100)
         parar(1)
         if achou_entrega():
             ir_para_entrega()
             break
-        andar_reto(100, 1000)
-        andar_reto(-100, 500)
-        guinada('D', 90, 100) # ajustar lado do giro entre uma parede e outra
+        if sensor_esquerdo.reflection() < 45 or sensor_direito.reflection() < 45:
+            parar(500)
+            motor_esquerdo.dc(-100)
+            motor_direito.dc(-100)
+            wait(100)
+            guinada('D', 90, 100)
+            andar_reto(-100, 1000)
+        else:
+            andar_reto(100, 100)
+            andar_reto(-100, 100)
+            guinada('D', 90, 100)
 
     resgate_concluido = True # não achou em nenhuma parede - segue mesmo assim
 
@@ -443,7 +453,7 @@ def virar_na_parede():
         veio_de_area_entrega = True
     else:
         guinada('D', 90, 100) # quina de parede de verdade
-        andar_reto(-100, 400)
+        andar_reto(-100, 500)
 
 def procurar_saida():
     global fim_resgate, dados
@@ -495,6 +505,8 @@ def procurar_saida():
                 break
         
         else:
+            andar_reto(100, 300)
+            andar_reto(-100, 300)
             virar_na_parede() # chegou numa quina/beirada sem achar abertura
 
 def resgate():

@@ -91,11 +91,12 @@ def resgate():
                 break
 
             elif dados == 10: # subir garra
-                movimento_garra(80, 300)
-                travar_garra()
+                while dados == 10:
+                    dados = hub.ble.observe(49)
+                    movimento_garra(80, 1)
 
             elif dados == 20: # descer garra
-                movimento_garra(-80, 300)
+                movimento_garra(-80, 500)
                 travar_garra()
 
             elif dados == 30: # abrir/fechar caçamba pra entregar
@@ -105,10 +106,10 @@ def resgate():
                 checar_paredes_saida()
 
             elif dados == 67: # neutro
-                pass
+                sinal(1000)
 
 while True:
-    sinal(67)
+    sinal(567)
 
     hub.ble.broadcast(0)
 
