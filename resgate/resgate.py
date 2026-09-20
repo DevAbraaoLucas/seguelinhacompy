@@ -34,7 +34,7 @@ timer = StopWatch()
 
 dados = hub.ble.observe(49)
 
-hub.speaker.volume(40)
+hub.speaker.volume(30)
 def sinal(frequencia):
     hub.speaker.beep(frequencia)
 
@@ -59,7 +59,7 @@ def checar_paredes_saida():
         hub.ble.broadcast('N')
 
 def entregar_bolinhas():
-    motor_cacamba.dc(40)  # abre a caçamba
+    motor_cacamba.dc(60)  # abre a caçamba
     wait(1000)
     motor_cacamba.brake()
     wait(4000)  # tempo pras vítimas caírem
@@ -124,7 +124,7 @@ while True:
                 hub.system.shutdown()'''
 
     if dados == 0: # assim que começa a seguir linha ou sempre que reiniciar
-        movimento_garra(67, 500)
+        movimento_garra(67, 670)
     elif dados == 1: # enquanto ta seguindo linha, trava os dois motores da garra
         travar_garra()
 
