@@ -1,9 +1,8 @@
 from pybricks.hubs import PrimeHub
-from pybricks.iodevices import PUPDevice
 from pybricks.pupdevices import Motor, ColorSensor, UltrasonicSensor
 from pybricks.parameters import Color, Direction, Port, Axis
 from pybricks.robotics import DriveBase
-from pybricks.tools import wait, StopWatch, run_task
+from pybricks.tools import wait, StopWatch
 
 hub = PrimeHub(top_side = Axis.Z, front_side = Axis.Y, broadcast_channel = 49, observe_channels = [94])
 motor_esquerdo = Motor(Port.A, positive_direction=Direction.COUNTERCLOCKWISE)
@@ -89,12 +88,17 @@ def seguir_linha(Kp, Kd, velocidade_base, vel_min=-100): # função para seguir 
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
                         wait(100)
-            motor_esquerdo.dc(70)
-            motor_direito.dc(-70)
-            wait(167)
-            motor_esquerdo.dc(-80)
-            motor_direito.dc(-80)
-            wait(67)
+            if hub.imu.tilt()[0] < -6.7:
+                motor_esquerdo.dc(50)
+                motor_direito.dc(-50)
+                wait(167)
+            else:
+                motor_esquerdo.dc(70)
+                motor_direito.dc(-70)
+                wait(167)
+                motor_esquerdo.dc(-80)
+                motor_direito.dc(-80)
+                wait(67)
         
     elif sensor_esquerdo.reflection() > 30 and sensor_direito.reflection() < 14: # branco mtpreto
             dois_motores.drive(400, 0)
@@ -119,12 +123,17 @@ def seguir_linha(Kp, Kd, velocidade_base, vel_min=-100): # função para seguir 
                         motor_esquerdo.dc(-100)
                         motor_direito.dc(-100)
                         wait(100)
-            motor_esquerdo.dc(-70)
-            motor_direito.dc(70)
-            wait(167)
-            motor_esquerdo.dc(-80)
-            motor_direito.dc(-80)
-            wait(67)
+            if hub.imu.tilt()[0] < -6.7:
+                motor_esquerdo.dc(-50)
+                motor_direito.dc(50)
+                wait(167)
+            else:
+                motor_esquerdo.dc(-70)
+                motor_direito.dc(70)
+                wait(167)
+                motor_esquerdo.dc(-80)
+                motor_direito.dc(-80)
+                wait(67)
 
     else:
         global ultimo_erro
@@ -202,7 +211,7 @@ def obstaculo(lado):
         dois_motores.brake()
 
         if lado == 1: # desvia pra esquerda
-            guinada('E', 67, 100)
+            guinada('E', 67, 67)
             motor_esquerdo.dc(100)
             motor_direito.dc(100)
             wait(200)
@@ -221,7 +230,7 @@ def obstaculo(lado):
                 if sensor_direito.reflection() < 25:
                     break
                 motor_esquerdo.dc(100)
-                motor_direito.dc(-90)
+                motor_direito.dc(-85)
                 wait(60) # anda um pouco pro lado
                 if sensor_direito.reflection() < 25:
                     break
@@ -240,7 +249,7 @@ def obstaculo(lado):
             wait(80)
 
         elif lado == 2: # desvia pra direita
-            guinada('D', 67, 100)
+            guinada('D', 67, 67)
             motor_esquerdo.dc(100)
             motor_direito.dc(100)
             wait(200)
@@ -258,7 +267,7 @@ def obstaculo(lado):
                 wait(60) # anda um pouco pra frente
                 if sensor_esquerdo.reflection() < 25:
                     break
-                motor_esquerdo.dc(-90)
+                motor_esquerdo.dc(-85)
                 motor_direito.dc(100)
                 wait(60) # anda um pouco pro lado
                 if sensor_esquerdo.reflection() < 25:
@@ -278,24 +287,41 @@ def obstaculo(lado):
             wait(80)
 
 def na_faixa_prata():
-    return (30 < sensor_esquerdo.reflection() < 50
-            and 30 < sensor_direito.reflection() < 50)
+    return (38 < sensor_esquerdo.reflection() < 47
+            and 37 < sensor_direito.reflection() < 46)
 
 def fita_prata():
     if not na_faixa_prata():
         return False
     timer.reset()
     while na_faixa_prata():
-        if timer.time() >= 267:            
-            return True
-        seguir_linha(3, 0.367, 55)
+        if hub.imu.tilt()[0] < -6.7:
+            return False
+        else:
+            if timer.time() >= 75:
+                return True
+            seguir_linha(3, 0.367, 55)
     return False
+    '''if hub.ble.observe(94) == 'R':
+        timer.reset()
+        while True:
+            andar_reto(-55, 1)
+            if na_faixa_prata() or timer.time() >= 500:
+                break
+        if timer.time() >= 500:
+            hub.ble.broadcast('N')
+            return False
+        else:
+            andar_reto(100, 200)
+            hub.ble.broadcast('ok')
+            return True'''
 
 def linha_vermelha():
     if sensor_esquerdo.color() == Color.RED or sensor_direito.color() == Color.RED:
-            while True:
-                parar(1)
-                hub.speaker.beep(5000)
+        while True:
+            parar(1)
+            hub.speaker.volume(100)
+            hub.speaker.beep(5000)
 
 def andar_reto(velocidade, tempo, Kp=1):
     hub.imu.reset_heading(0)
@@ -326,48 +352,52 @@ def varredura(lado_inicial):
     if lado_inicial == 'E' or lado_inicial == 'D': # entrada na esquerda ou direita
         lado_livre = 'D' if lado_inicial == 'E' else 'E' # lado sem parede perto (achado na entrada)
 
-        andar_reto(100, 267)
+        andar_reto(100, 400)
         guinada(lado_livre, 90, 100) # vira pro lado sem parede perto
-        andar_reto(-100, 500) # alinha com a parede
+        andar_reto(-100, 1000) # alinha com a parede
 
-        andar_reto(100, 1500) # 1500ms = 30cm; 2300ms = 45cm
+        andar_reto(100, 1300) # 1300ms = 30cm; 2300ms = 45cm
         guinada(lado_inicial, 90, 100)
+        andar_reto(100, 250)
+        andar_reto(-100, 400)
 
         hub.ble.broadcast(20) # desce a garra
-        andar_reto(-100, 500) # alinha com a parede
-        andar_reto(100, 7000) # anda ate a parede oposta
+        andar_reto(-100, 800) # alinha com a parede
+        andar_reto(100, 5000) # anda ate a parede oposta
         hub.ble.broadcast(10) # sobe a garra
-        parar(100)
+        parar(200)
         andar_reto(-50, 670)
         andar_reto(100, 1000) # alinha com a parede
+        hub.ble.broadcast(67)
 
-        andar_reto(-100, 1500) # 1500ms = 30cm; 2300ms = 45cm
+        andar_reto(-100, 1300) # 1300ms = 30cm; 2300ms = 45cm
         guinada(lado_inicial, 90, 67)
 
         hub.ble.broadcast(20) # desce a garra
         parar(670)
         andar_reto(100, 3000)
         hub.ble.broadcast(10) # sobe a garra
-        parar(100)
+        parar(200)
         andar_reto(-50, 670)
         andar_reto(100, 1000) # alinha com a parede
+        hub.ble.broadcast(67)
 
         andar_reto(-100, 300)
         guinada(lado_livre, 180, 100)
 
         hub.ble.broadcast(20) # desce a garra
         andar_reto(-100, 800)
-        andar_reto(100, 7000)
+        andar_reto(100, 4000)
         hub.ble.broadcast(10) # sobe a garra
-        parar(100)
+        parar(200)
         andar_reto(-50, 670)
         andar_reto(100, 1000) # alinha com a parede
+        hub.ble.broadcast(67)
 
+    '''else: # entrada no meio
+        andar_reto(100, 300)'''
 
-    else: # entrada no meio
-        andar_reto(100, 300)
-
-
+'''
 def ir_para_entrega():
     parar(300)
     andar_reto(-100, 200)
@@ -513,19 +543,21 @@ def procurar_saida():
             andar_reto(100, 300)
             andar_reto(-100, 300)
             virar_na_parede() # chegou numa quina/beirada sem achar abertura
+'''
 
 def area_de_entrega():
     global lado_entrada
-    andar_reto(-100, 1500) # 1500ms = 30cm; 2300ms = 45cm
-    guinada(lado_entrada, 135, 67) # 45 = 1; 135 = 2; 225 = 3; 315 = 4
+    andar_reto(-100, 1300) # 1300ms = 30cm; 2300ms = 45cm
+    guinada(lado_entrada, 45, 67) # 45 = 1; 135 = 2; 225 = 3; 315 = 4
 
     hub.ble.broadcast(20)
     parar(670)
     andar_reto(100, 3000)
     hub.ble.broadcast(10) # sobe a garra
-    parar(100)
+    parar(200)
     andar_reto(-50, 670)
     parar(500)
+    hub.ble.broadcast(67)
 
     guinada(lado_entrada, 180, 67)
     andar_reto(-100, 2000)
@@ -534,7 +566,7 @@ def area_de_entrega():
     while hub.ble.observe(94) != 99 and timer.time() < 7000:
         motor_esquerdo.dc(67)
         motor_direito.dc(67)
-        wait(150)
+        wait(100)
         motor_esquerdo.dc(-100)
         motor_direito.dc(-100)
         wait(250)
@@ -543,23 +575,23 @@ def area_de_entrega():
 
 def saida():
     global fim_resgate
-    andar_reto(100, 1500)
+    andar_reto(100, 1300)
     guinada('E', 45, 67)
 
-    andar_ate_parede(100, 44)
-    andar_reto(100, 500)
-    andar_reto(-100, 300)
+    andar_reto(100, 2500)
+    andar_reto(-100, 280)
 
-    guinada('D', 90, 67)
-    while sensor_esquerdo.reflection() < 30 and sensor_direito.reflection() < 30:
-        andar_reto(100, 1)
-
-    parar(500)
-    andar_reto(67, 300)
+    guinada('E', 90, 67)
+    while sensor_esquerdo.reflection() < 25 and sensor_direito.reflection() < 25:
+        andar_reto(70, 1)
 
     parar(500)
+    andar_reto(67, 200)
 
+    hub.ble.broadcast(0)
     fim_resgate = True
+
+    parar(500)
 
 def resgate():
     global lado_entrada
@@ -569,7 +601,7 @@ def resgate():
     timer.reset()
     parar(1)
     while timer.time() < 1000:
-        lado_entrada = hub.ble.observe(94)
+        lado_entrada = hub.ble.observe(94)        
     print(lado_entrada)
 
     varredura(lado_entrada)
@@ -593,19 +625,23 @@ def resgate():
 '''while True:
     print(sensor_esquerdo.reflection(), sensor_direito.reflection())
     print(sensor_esquerdo.color(), sensor_direito.color())
-    seguir_linha(3, 0, 50)'''
+    wait(670)'''
 
 hub.ble.broadcast(0) # antes de começar a seguir linha, manda um sinal para o hub debaixo subir a garra
 wait(500)
 
 while True: # loop principal
     dados = hub.ble.observe(94)
+    if dados == 0:
+        pass
+    else:
+        pass
     hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
 
     if hub.imu.tilt()[0] < -6.7:
-        seguir_linha(1.9, 0, 60, vel_min=50)
+        seguir_linha(2, 0, 55, vel_min=55)
     elif hub.imu.tilt()[0] > 5:
-        seguir_linha(2, 0, 50)
+        seguir_linha(2, 0, 35)
     else:
         seguir_linha(3, 0.367, 80)
 
@@ -616,7 +652,7 @@ while True: # loop principal
         if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
             verde()
 
-    obstaculo(2) # 1 = esquerda; 2 = direita
+    obstaculo(1) # 1 = esquerda; 2 = direita
 
     if fita_prata():
         hub.ble.broadcast(3)
@@ -625,16 +661,24 @@ while True: # loop principal
     linha_vermelha()
 
 while fim_resgate != True: # loop de resgate
+    '''parar(1)
+    timer.reset()
+    while timer.time() < 500:'''
+    hub.ble.broadcast(3)
     resgate()
 
 while True: # volta a seguir linha
     dados = hub.ble.observe(94)
+    if dados == 0:
+        pass
+    else:
+        pass
     hub.ble.broadcast(1) # enquanto ta seguindo linha, o hub debaixo trava os motores da garra
 
     if hub.imu.tilt()[0] < -6.7:
-        seguir_linha(2, 0, 60, vel_min=50)
+        seguir_linha(2, 0, 55, vel_min=50)
     elif hub.imu.tilt()[0] > 5:
-        seguir_linha(2, 0, 50)
+        seguir_linha(2, 0, 45)
     else:
         seguir_linha(3, 0.367, 80)
 
@@ -645,6 +689,6 @@ while True: # volta a seguir linha
         if sensor_esquerdo.color() == Color.GREEN or sensor_direito.color() == Color.GREEN:
             verde()
 
-    obstaculo(2) # 1 = esquerda; 2 = direita
+    obstaculo(1) # 1 = esquerda; 2 = direita
 
     linha_vermelha()

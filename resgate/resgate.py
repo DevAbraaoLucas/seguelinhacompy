@@ -1,6 +1,6 @@
 from pybricks.hubs import PrimeHub
-from pybricks.pupdevices import Motor, ColorSensor, UltrasonicSensor
-from pybricks.parameters import Color, Direction, Port
+from pybricks.pupdevices import Motor, UltrasonicSensor
+from pybricks.parameters import Direction, Port
 from pybricks.tools import wait, StopWatch
 
 hub = PrimeHub(broadcast_channel = 94, observe_channels = [49])
@@ -34,7 +34,9 @@ timer = StopWatch()
 
 dados = hub.ble.observe(49)
 
-hub.speaker.volume(30)
+resgate_detectado = False
+
+hub.speaker.volume(100)
 def sinal(frequencia):
     hub.speaker.beep(frequencia)
 
@@ -72,7 +74,8 @@ def resgate():
     global dados
     if dados == 3:
         timer.reset()
-        while timer.time() < 400:
+        while timer.time() < 800:
+            print('finalmente')
             if ultrassonico_esquerdo.distance() < 200:
                 hub.ble.broadcast('E')
             elif ultrassonico_direito.distance() < 200:
@@ -93,7 +96,7 @@ def resgate():
             elif dados == 10: # subir garra
                 while dados == 10:
                     dados = hub.ble.observe(49)
-                    movimento_garra(80, 1)
+                    movimento_garra(67, 1)
 
             elif dados == 20: # descer garra
                 movimento_garra(-80, 500)
@@ -107,6 +110,13 @@ def resgate():
 
             elif dados == 67: # neutro
                 sinal(1000)
+
+'''timer.reset()
+while True: # desafio surpresa
+    if hub.ble.observe(49) == 1 or timer.time() > 10000:
+        break
+    sinal(8000)
+    hub.ble.broadcast('s')'''
 
 while True:
     sinal(567)
@@ -127,6 +137,21 @@ while True:
         movimento_garra(67, 670)
     elif dados == 1: # enquanto ta seguindo linha, trava os dois motores da garra
         travar_garra()
+    else:
+        pass
 
     resgate()
-            
+
+    '''if ultrassonico_direito.distance() < 100:
+        hub.ble.broadcast('R')
+        timer.reset()
+        while True:
+            if dados == 'ok':
+                resgate_detectado = True
+                break
+            if timer.time() > 1000 or dados == 'N':
+                break
+        if resgate_detectado == True:
+            resgate()
+        else:
+            wait(2000)'''
